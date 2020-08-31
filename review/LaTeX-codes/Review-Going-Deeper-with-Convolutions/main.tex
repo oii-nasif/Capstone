@@ -1,0 +1,88 @@
+\documentclass[12pt]{article}
+%\documentclass[12pt, twocolumn]{article}
+%use package
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage[a4paper, total={6.5in, 10.5in}]{geometry}
+%\usepackage{graphicx, xcolor}
+
+
+\title{A Review on Going Deeper with Convolutions}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Abstract}
+Researchers proposed a 22-layered deep network, GoogLeNet which is able to gain quality in the context of classification and detection. This model allows us to increase the depth and width of the network while keeping the \textbf{computational budget constant.}
+
+\section{Introduction}
+GoogLeNet used 12x fewer computational power than Krizhevsky \cite{hinton2012improving} (the winner of ILSVRC2012) and it was significantly more accurate. The model is able to keep the  computational budget of 1.5 billion multiply-adds at an inference time, which could be proved to real-world use. 
+
+\section{Dataset Description}
+They used a dataset from \textit{\textbf{ImageNet} Large Scale Visual Recognition Challenge 2014}, where 1.2 million images were used for training, 50,000 for validation, and 100,000 for testing. 
+\begin{enumerate}
+    \item The task of classifying the image into one of 1000 leaf-node categories in the Imagenet hierarchy.
+    \item The ILSVRC detection task is to produce bounding boxes around objects in images among 200 possible classes.
+\end{enumerate}
+
+\section{Related Work}
+\begin{enumerate}
+    \item To remove the computational bottleneck, GoogLeNet uses an additional 1x1 convolutional layers, followed by rectified linear activation. \cite{lin2013network}
+    \item GoogLeNet uses a similar pipeline used in R-CNN proposed by Girshick \cite{girshick2014rich}, but explored but have explored enhancements in both stages, such as multi-box \cite{erhan2014scalable} prediction for higher object bounding box recall, and ensemble approaches for better categorization of bounding box proposals. 
+\end{enumerate}
+
+\section{Motivation and High-Level Consideration} 
+\subsection{Two Drawbacks}
+\begin{enumerate}
+    \item Bigger size typically means a larger number of parameters, which makes the enlarged network more prone to overfitting, especially if the number of labeled examples in the training set is limited.
+    \item Another drawback of uniformly increased network size is the dramatically increased use of computational resources.
+\end{enumerate}
+
+\subsection{Proposed Ideas}
+\begin{enumerate}
+    \item The fundamental way of solving both issues would be by ultimately moving from fully connected to sparsely connected architectures, even inside the convolutions.
+    \item Using non-uniform sparse data structures is not a good approach, it's better to use uniformity of the structure and a large number of filters and greater batch size allow for utilizing efficient dense computation.
+\end{enumerate}
+
+\section{Architectural Details}
+\begin{enumerate}
+    \item In this architecture, 1×1 convolutions are used to compute reductions before the expensive 3×3 and 5×5 convolutions. Besides being used as reductions, they also include the use of rectified linear activation which makes them dual-purpose.
+    \item For technical reasons (memory efficiency during training), it seemed beneficial to start using Inception modules only at higher layers while keeping the lower layers in traditional convolutional fashion.
+\end{enumerate}
+
+\section{GoogLeNet}
+\begin{enumerate}
+    \item The network is 22 layers deep when counting only layers with parameters (or 27 layers if we also count pooling). The overall number of layers (independent building blocks) used for the construction of the network is about 100.
+    \item A move from fully connected layers to average pooling improved the top-1 accuracy by about 0.6\%.
+    \item A 1×1 convolution with 128 filters for dimension reduction and rectified linear activation.
+    \item A fully connected layer with 1024 units and rectified linear activation.
+    \item A dropout layer with 70\% ratio of dropped outputs.
+    \item A linear layer with softmax loss as the classifier (predicting the same 1000 classes as the main classifier, but removed at inference time).
+\end{enumerate}
+
+\section{Training Methodology}
+\begin{enumerate}
+    \item The model’s training used asynchronous stochastic gradient descent with 0.9 momentum \cite{sutskever2013importance}, fixed learning rate schedule (decreasing the learning rate by 4\% every 8 epochs). Polyak averaging \cite{polyak1992acceleration} was used to create the final model used at inference time.
+    \item Some of the models were mainly trained on smaller relative crops, others on larger ones.
+\end{enumerate}
+
+\section{ILSVRC 2014 Challenge Setup and Result}
+\subsection{Classification Challange}
+The challenge uses the top-5 error rate for ranking purposes. 
+GoogLeNet gained first place in that challenge where the error rate was 6.67\% and they did not use any external dataset.
+\subsection{Detection Challange}
+Detected objects count as correct if they match the class of the ground truth and
+their bounding boxes overlap by at least 50\% (using the Jaccard index).
+\newline
+\textbf{\textit{Results are reported using the mean average precision (mAP).}}
+\newline
+GoogLeNet achieved first place in that challenge where mAP was 43.9\%  and GoogLeNet used external data named ImageNet 1k and was used for 6 out of the 7 models in their ensemble.
+
+
+\section{Conclusion}
+This model able to create expected optimal sparse structure by readily available dense building blocks is a viable method for improving neural networks. Besides it, a modest increase in computational requirements helps this model to gain a significant quality.
+
+\bibliographystyle{plain}
+\bibliography{ref.bib}
+\end{document}
